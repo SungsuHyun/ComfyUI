@@ -565,7 +565,12 @@ class PromptServer():
 
                         # For security, force certain mimetypes to download instead of display
                         if content_type in {'text/html', 'text/html-sandboxed', 'application/xhtml+xml', 'text/javascript', 'text/css'}:
-                            content_type = 'application/octet-stream'  # Forces download
+                            allow_html = request.rel_url.query.get("allow_html", "") == "1"
+                            ui_preview_root = os.path.abspath(os.path.join(folder_paths.get_output_directory(), "ui_previews"))
+                            file_real_path = os.path.abspath(file)
+                            is_ui_preview = os.path.commonpath((file_real_path, ui_preview_root)) == ui_preview_root
+                            if not (allow_html and is_ui_preview):
+                                content_type = 'application/octet-stream'  # Forces download
 
                         return web.FileResponse(
                             file,
