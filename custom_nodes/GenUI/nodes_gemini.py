@@ -36,8 +36,24 @@ class Gemini:
 
         print(f"[Gemini] Generating response with model: {model_name}")
 
-        # 클라이언트 호출 (이미지 없이 텍스트만)
-        response = LLMClient.get_gemini_response(
-            api_key, model_name, system_instruction, user_prompt, temperature, max_tokens, files=None
+        # 단일 user_prompt를 messages 리스트 포맷으로 변환
+        messages = [{"role": "user", "content": user_prompt}]
+
+        # 클라이언트 호출 (files 인자 제거됨)
+        response_msg = LLMClient.get_gemini_response(
+            api_key=api_key,
+            model_name=model_name,
+            system_instruction=system_instruction,
+            messages=messages,
+            tools=None,
+            temperature=temperature,
+            max_tokens=max_tokens
         )
+        
+        if response_msg:
+            response = response_msg.content
+        else:
+            response = "Error: Failed to get response from Gemini."
+
+        print(f"[Gemini] Response: {response}")
         return (response,)

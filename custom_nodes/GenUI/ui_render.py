@@ -9,8 +9,7 @@ class UIRender:
     def INPUT_TYPES(cls):
         return {
             "required": {
-                "html": ("STRING", {"multiline": True, "default": "<div class='ui-card'>Hello ComfyUI</div>"}),
-                "css": ("STRING", {"multiline": True, "default": ".ui-card { padding: 16px; background:#111; color:#fff; }"}),
+                "code": ("STRING", {"multiline": True, "default": "<style>.ui-card { padding: 16px; background:#111; color:#fff; }</style><div class='ui-card'>Hello ComfyUI</div>"}),
                 "filename_prefix": ("STRING", {"default": "ComfyUI_UI"}),
             },
             "hidden": {
@@ -31,25 +30,21 @@ class UIRender:
         return float("NaN")
 
     @staticmethod
-    def _wrap_html(html: str, css: str) -> str:
-        css_block = f"<style>{css}</style>" if css.strip() else ""
-        lower_html = html.lower()
-        if "<html" not in lower_html:
+    def _wrap_html(code: str) -> str:
+        # code 안에 html, css가 모두 포함되어 있다고 가정
+        # 단순 래핑만 수행
+        lower_code = code.lower()
+        if "<html" not in lower_code:
             return (
                 "<!DOCTYPE html>"
                 "<html><head><meta charset=\"utf-8\">"
-                f"{css_block}"
                 "</head><body>"
-                f"{html}"
+                f"{code}"
                 "</body></html>"
             )
-        if css_block and css_block not in html:
-            if "</head>" in html:
-                return html.replace("</head>", f"{css_block}</head>")
-            return css_block + html
-        return html
+        return code
 
-    def save_ui(self, html, css="", filename_prefix="ComfyUI_UI", prompt=None, extra_pnginfo=None):
+    def save_ui(self, code, filename_prefix="ComfyUI_UI", prompt=None, extra_pnginfo=None):
         base_output = folder_paths.get_output_directory()
         ui_root = os.path.join(base_output, "ui_previews")
         os.makedirs(ui_root, exist_ok=True)
@@ -64,7 +59,7 @@ class UIRender:
         html_filename = f"{filename_with_batch}_{counter:05}_.html"
         html_path = os.path.join(full_output_folder, html_filename)
 
-        html_content = self._wrap_html(html, css)
+        html_content = self._wrap_html(code)
         with open(html_path, "w", encoding="utf-8") as f:
             f.write(html_content)
 

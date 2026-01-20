@@ -36,7 +36,20 @@ class GPT:
 
         print(f"[GPT] Generating response with model: {model_name}")
 
-        response = LLMClient.get_gpt_response(
-            api_key, model_name, system_instruction, user_prompt, temperature, max_tokens, files=None
+        # 단일 user_prompt를 messages 리스트 포맷으로 변환
+        messages = [{"role": "user", "content": user_prompt}]
+
+        response_msg = LLMClient.get_gpt_response(
+            api_key=api_key,
+            model_name=model_name,
+            system_instruction=system_instruction,
+            messages=messages,
+            tools=None,
+            temperature=temperature,
+            max_tokens=max_tokens
         )
-        return (response,)
+        
+        # get_gpt_response는 이제 Message 객체를 반환하므로 content만 추출
+        response_text = response_msg.content if response_msg else "Error: Failed to get response."
+        print(f"[GPT] Response: {response_text}")
+        return (response_text,)
